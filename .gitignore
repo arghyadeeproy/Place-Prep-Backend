@@ -1,0 +1,86 @@
+# ===============================
+# PYTHON / DJANGO
+# ===============================
+
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Django stuff
+db.sqlite3
+*.log
+*.pot
+media/
+staticfiles/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Virtual environment
+venv/
+env/
+ENV/
+.venv/
+
+# ===============================
+# FIREBASE
+# ===============================
+
+firebase_credentials.json
+serviceAccountKey.json
+
+# ===============================
+# GOOGLE CLOUD
+# ===============================
+
+*.pem
+*.key
+*.crt
+
+# ===============================
+# NODE / REACT (if in same repo)
+# ===============================
+
+node_modules/
+build/
+dist/
+.next/
+coverage/
+
+# Vite
+.vite/
+
+# ===============================
+# IDE / EDITOR
+# ===============================
+
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# ===============================
+# OS FILES
+# ===============================
+
+.DS_Store
+Thumbs.db
+
+# ===============================
+# TESTING / CACHE
+# ===============================
+
+.pytest_cache/
+.mypy_cache/
+coverage.xml
+htmlcov/
+
+# ===============================
+# MISC
+# ===============================
+
+*.bak
+*.swp
+*.tmp

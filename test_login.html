@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Firebase ID Token Generator</title>
+</head>
+
+<body>
+  <h2>Firebase Token Generator</h2>
+
+  <input id="email" placeholder="Email" /><br><br>
+  <input id="password" type="password" placeholder="Password" /><br><br>
+  <button onclick="login()">Login & Get Token</button>
+
+  <h3>ID Token:</h3>
+  <textarea id="output" rows="10" cols="100" readonly></textarea>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword }
+      from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBphgrsa7a5IJqPkKHdhwOUPSv1WV4tAUU",
+      authDomain: "placeprep-4f88c.firebaseapp.com",
+      projectId: "placeprep-4f88c",
+      storageBucket: "placeprep-4f88c.firebasestorage.app",
+      messagingSenderId: "606253824171",
+      appId: "1:606253824171:web:36fdc3ed26c2c6d53ddfee"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    window.login = async function () {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      try {
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+
+        const token = await userCredential.user.getIdToken();
+
+        console.log("🔥 Firebase ID Token:");
+        console.log(token);
+
+        document.getElementById("output").value = token;
+
+      } catch (error) {
+        alert("Error: " + error.message);
+        console.error(error);
+      }
+    };
+  </script>
+</body>
+</html>
