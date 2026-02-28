@@ -8,7 +8,7 @@ from django.conf import settings
 
 client = Groq(api_key=settings.GROQ_API_KEY)
 
-MODEL = "llama-3.3-70b-versatile"   # Best balance for quality + JSON
+MODEL = "llama-3.3-70b-versatile"
 
 
 def _clean_json(raw: str) -> str:
@@ -18,44 +18,88 @@ def _clean_json(raw: str) -> str:
 
 
 # ─────────────────────────────────────────
-# Company Guide
+# Company Guide  (fully AI-generated, company-specific)
 # ─────────────────────────────────────────
 
 def generate_company_guide(company_name: str) -> dict:
+    seed = f"{int(time.time() * 1000) % 99999}_{random.randint(1000, 9999)}"
+
     prompt = f"""
-You are a placement preparation expert.
-Generate a structured interview guide for {company_name}.
+You are a senior placement expert with verified knowledge of {company_name}'s actual hiring process.
+Session seed: {seed}
 
-Return ONLY valid JSON.
+Generate a DETAILED, 100% COMPANY-SPECIFIC interview preparation guide for: {company_name}
 
-Schema:
+════════════════════════════════════════
+ABSOLUTE RULES — every single one is mandatory:
+════════════════════════════════════════
+
+1. PYQS MUST BE REAL, COMPANY-SPECIFIC questions:
+   - These must be questions that have ACTUALLY been asked at {company_name} interviews,
+     sourced from verified platforms like GeeksForGeeks, LeetCode Discuss, Glassdoor,
+     AmbitionBox, or InterviewBit.
+   - Do NOT generate generic DSA questions like "Reverse a linked list" or "Two Sum"
+     unless they are specifically and frequently documented for {company_name}.
+   - For product/FAANG companies (Google, Amazon, Meta, Microsoft, Adobe, Oracle, Goldman Sachs, D.E. Shaw):
+     * Include their specific algorithmic problems with exact problem descriptions
+     * Include system design questions they actually ask (e.g. "Design Google Search", "Design Amazon's recommendation system")
+     * Include behavioral/LP questions unique to their culture
+   - For service companies (TCS, Infosys, Wipro, Capgemini, Accenture, Deloitte):
+     * Include their specific OA test questions (NQT patterns, AMCAT, Cocubes)
+     * Include the specific pseudocode/output-tracing questions they use
+     * Include their specific aptitude question patterns
+   - For fintech/startup companies (Swiggy, Zomato, Paytm, PhonePe):
+     * Include their specific system design questions (e.g. "Design Swiggy's delivery tracking")
+     * Include their product-specific questions
+   - Generate at least 8-10 PYQs with different tags
+
+2. ROUNDS must reflect {company_name}'s ACTUAL interview process:
+   - Use the real round names (e.g. "TCS NQT", "Amazon Bar Raiser", "Google Onsite", "Infosys HackWithInfy")
+   - Use real platform names (HackerRank for Amazon OA, Codility for Microsoft, etc.)
+   - Use real durations and formats
+   - Include the correct number of rounds
+
+3. TIPS must be {company_name}-SPECIFIC:
+   - Mention their actual evaluation criteria
+   - Mention their specific culture/values (Amazon Leadership Principles, Google Googleyness, etc.)
+   - Mention their specific interview quirks or known patterns
+
+4. TAGLINE must be witty and specific to {company_name}, not generic.
+
+5. Every field must be accurate and non-generic. If you are uncertain about a detail,
+   use the most commonly reported version from interview experience databases.
+
+════════════════════════════════════════
+Return ONLY valid JSON matching this exact schema (no extra text, no markdown):
+════════════════════════════════════════
+
 {{
   "name": "{company_name}",
-  "tagline": "...",
-  "about": "...",
-  "package": "...",
+  "tagline": "<witty, {company_name}-specific tagline>",
+  "about": "<2–3 sentences specific to {company_name}'s interview culture and what they look for>",
+  "package": "<realistic salary range in LPA for India fresher/SDE-1>",
   "difficulty": "Easy | Medium | Hard",
-  "rounds": <integer>,
-  "roles": ["..."],
+  "rounds": <integer — actual number of rounds>,
+  "roles": ["<actual roles {company_name} hires for>"],
   "rounds_detail_list": [
     {{
-      "name": "...",
-      "type": "OA | Technical | HR | Behavioral",
-      "duration": "...",
-      "desc": "..."
+      "name": "<actual round name>",
+      "type": "OA | Technical | HR | Behavioral | System",
+      "duration": "<real duration>",
+      "desc": "<specific description of what happens in this round at {company_name}>"
     }}
   ],
   "pyqs": [
     {{
-      "q": "...",
-      "tag": "...",
-      "difficulty": "...",
+      "q": "<actual question asked at {company_name} — specific, not generic>",
+      "tag": "<topic tag>",
+      "difficulty": "Easy | Medium | Hard",
       "freq": "High | Medium | Low"
     }}
   ],
-  "tips": ["..."],
+  "tips": ["<company-specific tip>"],
   "resources": [
-    {{ "title": "...", "type": "Practice | Book | Guide" }}
+    {{ "title": "<resource name>", "type": "Practice | Book | Guide | PYQ | Video" }}
   ]
 }}
 """
@@ -63,7 +107,7 @@ Schema:
     response = client.chat.completions.create(
         model=MODEL,
         messages=[{"role": "user", "content": prompt}],
-        temperature=0.4,
+        temperature=0.5,   # Lower temp for factual accuracy
     )
 
     raw = _clean_json(response.choices[0].message.content)
@@ -75,7 +119,7 @@ Schema:
 
 
 # ─────────────────────────────────────────
-# Topic subtopics map — forces variety
+# Topic subtopics map — forces variety in MCQ generation
 # ─────────────────────────────────────────
 
 _TOPIC_SUBTOPICS = {
@@ -175,19 +219,14 @@ _QUESTION_ANGLES = [
 # ─────────────────────────────────────────
 
 def generate_mcq_questions(topic: str, difficulty: str, count: int = 10) -> list:
-    # Pick random subtopics and question angles to force variety
     subtopics = _TOPIC_SUBTOPICS.get(topic, [topic])
     chosen_subtopics = random.sample(subtopics, min(count, len(subtopics)))
-    # If count > available subtopics, fill remainder randomly
     while len(chosen_subtopics) < count:
         chosen_subtopics.append(random.choice(subtopics))
 
     chosen_angles = [random.choice(_QUESTION_ANGLES) for _ in range(count)]
-
-    # Unique seed so the model sees a "fresh" context each call
     seed_token = f"{int(time.time() * 1000) % 99999}_{random.randint(1000, 9999)}"
 
-    # Build per-question directives so the model doesn't cluster around common topics
     directives = "\n".join(
         f"  Q{i+1}: subtopic='{chosen_subtopics[i]}', angle='{chosen_angles[i]}'"
         for i in range(count)
@@ -230,8 +269,8 @@ JSON schema (return an array of exactly {count} objects):
     response = client.chat.completions.create(
         model=MODEL,
         messages=[{"role": "user", "content": prompt}],
-        temperature=0.95,   # slightly higher than before for more variety
-        seed=random.randint(1, 2**31 - 1),  # Groq supports seed param
+        temperature=0.95,
+        seed=random.randint(1, 2**31 - 1),
     )
 
     raw = _clean_json(response.choices[0].message.content)
@@ -244,7 +283,6 @@ JSON schema (return an array of exactly {count} objects):
     if not isinstance(questions, list):
         raise ValueError("Expected list of questions")
 
-    # Deduplicate by question text (just in case model still slips one in)
     seen_questions: set[str] = set()
     unique = []
     for q in questions:
