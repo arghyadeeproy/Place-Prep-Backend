@@ -69,7 +69,21 @@ WSGI_APPLICATION = "backend.wsgi.application"
 # ─────────────────────────────────────────────
 # DATABASE (SQLite — Safe for Render Free)
 # ─────────────────────────────────────────────
-
+TEMPLATES = [
+    {
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.debug",
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
+            ],
+        },
+    },
+]
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
@@ -130,8 +144,11 @@ STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 # FIREBASE
 # ─────────────────────────────────────────────
 
-FIREBASE_PROJECT_ID = os.environ.get("FIREBASE_PROJECT_ID")
-
+FIREBASE_CREDENTIALS_PATH = os.getenv(
+    "FIREBASE_CREDENTIALS_PATH",
+    "firebase_credentials.json"
+)
+FIREBASE_PROJECT_ID = os.getenv("FIREBASE_PROJECT_ID", "")
 # (Firebase JSON handled in api/firebase.py via FIREBASE_CREDENTIALS_JSON)
 
 # ─────────────────────────────────────────────
