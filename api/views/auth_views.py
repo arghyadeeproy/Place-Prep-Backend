@@ -143,7 +143,7 @@ class ProfileView(APIView):
 
     def patch(self, request):
         uid = get_uid(request)
-        allowed_fields = ("name", "bio", "dob", "college", "branch", "year", "linkedin", "github", "resume", "targets")
+        allowed_fields = ("name", "bio", "dob", "college", "branch", "year", "linkedin", "github", "resume", "targets", "photoURL")
         update_data = {k: v for k, v in request.data.items() if k in allowed_fields}
 
         if not update_data:
