@@ -292,3 +292,105 @@ JSON schema (return an array of exactly {count} objects):
             unique.append(q)
 
     return unique
+
+# ─────────────────────────────────────────
+# 🔎 AI Technical Subject Validation
+# ─────────────────────────────────────────
+
+def is_technical_subject(subject_name: str) -> bool:
+    prompt = f"""
+You are a strict classifier.
+
+Determine whether the following subject is related to:
+software engineering, computer science, programming,
+system design, cloud computing, DevOps, databases,
+data structures, networking, operating systems, or technical interviews.
+
+Subject: "{subject_name}"
+
+Return ONLY one word:
+YES
+NO
+"""
+
+    response = client.chat.completions.create(
+        model=MODEL,
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0,
+    )
+
+    answer = response.choices[0].message.content.strip().upper()
+    return "YES" in answer
+
+
+# ─────────────────────────────────────────
+# 📚 Study Module Lesson Generation (NEW FEATURE)
+# ─────────────────────────────────────────
+
+def generate_study_module_lessons(subject_name: str, module_title: str, lesson_count: int) -> list:
+    # 🔥 Let AI decide if subject is technical
+    if not is_technical_subject(subject_name):
+        raise ValueError("Only technical subjects are supported.")
+
+    seed_token = f"{int(time.time() * 1000) % 99999}_{random.randint(1000, 9999)}"
+
+    prompt = f"""
+You are a senior software engineering educator.
+
+Session seed: {seed_token}
+
+Generate a structured technical learning module.
+
+Subject: {subject_name}
+Module: {module_title}
+Total Lessons: {lesson_count}
+
+STRICT RULES:
+1. Lessons must be progressive (basic → advanced).
+2. First 60–70% lessons = theory.
+3. Last 30–40% lessons = practice/interview-focused.
+4. Each lesson must contain:
+   - Clear explanation
+   - Key concepts
+   - Example or practical use case
+5. Content must be useful for software engineering interviews.
+6. Do NOT generate generic filler.
+7. Return ONLY valid JSON — no markdown.
+
+Return JSON array like:
+
+[
+  {{
+    "title": "Lesson title",
+    "type": "theory" or "practice",
+    "content": "Detailed explanation..."
+  }}
+]
+"""
+
+    response = client.chat.completions.create(
+        model=MODEL,
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0.7,
+    )
+
+    raw = _clean_json(response.choices[0].message.content)
+
+    try:
+        lessons = json.loads(raw)
+    except Exception as e:
+        raise ValueError(f"Groq bad JSON (Study Module): {e}\nRaw: {raw[:400]}")
+
+    if not isinstance(lessons, list):
+        raise ValueError("Expected list of lessons")
+
+    cleaned = []
+    for idx, lesson in enumerate(lessons[:lesson_count], start=1):
+        cleaned.append({
+            "title": lesson.get("title", f"Lesson {idx}"),
+            "type": lesson.get("type", "theory"),
+            "content": lesson.get("content", ""),
+            "order": idx,
+        })
+
+    return cleaned

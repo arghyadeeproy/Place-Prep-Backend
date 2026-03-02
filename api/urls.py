@@ -48,6 +48,12 @@ from api.views.dev2dev_views import (
 )
 from api.views.dashboard_views import DashboardView
 
+from api.views.study_views import (
+    StudyModulesView,
+    StudyModuleDetailView,
+    MarkLessonCompleteView,
+)
+
 urlpatterns = [
     # ── Auth ──────────────────────────────────────────────────────────────────
     path("auth/register/",      RegisterView.as_view(),     name="auth-register"),
@@ -77,4 +83,9 @@ urlpatterns = [
 
     # ── Dashboard ─────────────────────────────────────────────────────────────
     path("dashboard/", DashboardView.as_view(), name="dashboard"),
+
+    # ── Study Modules ─────────────────────────────────────────────────────────────
+    path("study/<str:subject_id>/modules/", StudyModulesView.as_view()),
+    path("study/<str:subject_id>/<str:module_id>/", StudyModuleDetailView.as_view()),
+    path("study/<str:module_id>/complete/", MarkLessonCompleteView.as_view()),
 ]
