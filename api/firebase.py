@@ -68,6 +68,10 @@ class Collections:
     ACTIVE_SESSIONS = "active_sessions"
     POSTS = "posts"
     COMPANY_CACHE = "company_cache"
+    # ── Study module collections ──────────────────────────────────
+    STUDY_MODULES = "study_modules"
+    STUDY_LESSONS = "study_lessons"
+    USER_PROGRESS = "user_progress"
 
 
 def doc_to_dict(doc):
