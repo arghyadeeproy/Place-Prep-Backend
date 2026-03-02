@@ -30,9 +30,15 @@ Final URLs:
   /api/dashboard/
 """
 
+
 from django.urls import path
 from api.views.auth_views import (
     RegisterView, LoginView, ProfileView,
+)
+from api.views.notification_views import (
+    NotificationListView,
+    NotificationMarkReadView,
+    NotificationMarkAllReadView,
 )
 from api.views.placement_views import (
     PopularCompaniesView, CompanyGuideView, CompanyCacheRefreshView,
@@ -88,4 +94,9 @@ urlpatterns = [
     path("study/<str:subject_id>/modules/", StudyModulesView.as_view()),
     path("study/<str:subject_id>/<str:module_id>/", StudyModuleDetailView.as_view()),
     path("study/<str:module_id>/complete/", MarkLessonCompleteView.as_view()),
+    # ── Notifications ─────────────────────────────────────────────────────────────
+    # inside urlpatterns:
+    path("notifications/",                      NotificationListView.as_view(),       name="notifications"),
+    path("notifications/<str:notif_id>/read/",  NotificationMarkReadView.as_view(),   name="notification-read"),
+    path("notifications/read-all/",             NotificationMarkAllReadView.as_view(), name="notifications-read-all"),
 ]
